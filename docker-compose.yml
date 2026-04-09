@@ -1,0 +1,145 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: thunder
+      POSTGRES_PASSWORD: thunder
+      POSTGRES_DB: thunderdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U thunder
+      interval: 3s
+      retries: 5
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p /docker-entrypoint-initdb.d
+        cat > /docker-entrypoint-initdb.d/00-setup.sql <<'SQL'
+        ALTER ROLE thunder REPLICATION;
+        SELECT 'CREATE DATABASE consentdb' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname='consentdb')\gexec
+        SQL
+        exec docker-entrypoint.sh postgres \
+          -c wal_level=logical \
+          -c max_replication_slots=4 \
+          -c max_wal_senders=4
+
+  consent:
+    build: { context: ., dockerfile: Dockerfile, target: consent }
+    command:
+      - sh
+      - -c
+      - |
+        PGPASSWORD=thunder psql -h postgres -U thunder -d consentdb \
+          -f dbscripts/db_schema_postgres.sql 2>/dev/null || true
+        # Enable CDC on all tables
+        PGPASSWORD=thunder psql -h postgres -U thunder -d consentdb <<'SQL'
+        DO $$ DECLARE tbl TEXT; BEGIN
+          FOR tbl IN SELECT tablename FROM pg_tables WHERE schemaname='public' LOOP
+            EXECUTE format('ALTER TABLE public.%I REPLICA IDENTITY FULL', tbl);
+          END LOOP;
+        END $$;
+        SQL
+        exec ./consent-server
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  net-dump:
+    build: { context: ., dockerfile: Dockerfile, target: net-dump }
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p logs/requests
+        cat > config.json <<'EOF'
+        {"main_log":"./logs/net-dump.txt","request_logs":"./logs/requests","mappings":[
+          {"name":"browser-to-thunder","in":{"port":8091,"interface":"0.0.0.0","ssl":{"key":"certs/server.key","cert":"certs/server.cert"}},"out":{"host":"thunder","port":8090,"https":true}},
+          {"name":"thunder-to-consent","in":{"port":9091,"interface":"0.0.0.0","ssl":{"key":"certs/server.key","cert":"certs/server.cert"}},"out":{"host":"consent","port":9090}}
+        ]}
+        EOF
+        exec node net-dump.js config.json
+    healthcheck:
+      test: netstat -tln | grep -q ':8091' || exit 1
+      interval: 2s
+      timeout: 2s
+      retries: 3
+    ports:
+      - "8091:8091"
+    volumes:
+      - ./dump:/app/logs/requests
+    depends_on:
+      consent: { condition: service_healthy }
+
+  thunder:
+    build: { context: ., dockerfile: Dockerfile, target: thunder }
+    command:
+      - bash
+      - -c
+      - |
+        export PGPASSWORD=thunder
+        # Init schemas if tables missing
+        if ! psql -h postgres -U thunder -d thunderdb -c "SELECT 1 FROM APPLICATION LIMIT 1" 2>/dev/null; then
+          for db in configdb runtimedb userdb; do
+            psql -h postgres -U thunder -d thunderdb -f "dbscripts/$${db}/postgres.sql"
+          done
+          # Enable CDC on all tables
+          psql -h postgres -U thunder -d thunderdb <<'SQL'
+          DO $$ DECLARE tbl TEXT; BEGIN
+            FOR tbl IN SELECT tablename FROM pg_tables WHERE schemaname='public' LOOP
+              EXECUTE format('ALTER TABLE public.%I REPLICA IDENTITY FULL', tbl);
+            END LOOP;
+          END $$;
+        SQL
+        fi
+        # Bootstrap on first run
+        APP_COUNT=$$(psql -h postgres -U thunder -d thunderdb -tAc "SELECT COUNT(*) FROM APPLICATION" 2>/dev/null || echo 0)
+        if [ "$$APP_COUNT" = "0" ]; then
+          echo "First run — running setup..."
+          THUNDER_PUBLIC_URL=https://localhost:8091 ./setup.sh --without-consent
+        fi
+        exec ./thunder
+    ports:
+      - "8090:8090"
+    depends_on:
+      consent: { condition: service_healthy }
+      net-dump: { condition: service_healthy }
+
+  db-dump-thunder:
+    image: ghcr.io/manuranga/db-dump:latest
+    environment:
+      DB_HOST: postgres
+      DB_NAME: thunderdb
+      DB_USER: thunder
+      DB_PASSWORD: thunder
+      SLOT_NAME: cdc_thunderdb
+      TOPIC_PREFIX: thunderdb
+      SOURCE_LABEL: thunderdb
+      LOGS_DIR: /app/dump
+    volumes:
+      - ./dump:/app/dump
+      - dbdump-thunder:/app/data
+    depends_on:
+      thunder: { condition: service_healthy }
+
+  db-dump-consent:
+    image: ghcr.io/manuranga/db-dump:latest
+    environment:
+      DB_HOST: postgres
+      DB_NAME: consentdb
+      DB_USER: thunder
+      DB_PASSWORD: thunder
+      SLOT_NAME: cdc_consentdb
+      TOPIC_PREFIX: consentdb
+      SOURCE_LABEL: consentdb
+      LOGS_DIR: /app/dump
+    volumes:
+      - ./dump:/app/dump
+      - dbdump-consent:/app/data
+    depends_on:
+      thunder: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  dbdump-thunder:
+  dbdump-consent:
