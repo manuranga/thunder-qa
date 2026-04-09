@@ -40,7 +40,7 @@ Pick a **single** Epic (cover breadth first yet prioritize by importance), then 
 
 For the selected Stories:
 
-- Perform black box testing. Assume previous tester left the docker compose up. You must use chrome via mcp tool, if can't, stop.
+- Perform black box testing. Assume the previous tester left the docker compose up. Prefer UI tests over backend tests. UI tests are performed using playwright-cli.
 - Read all relevant `./dump/*.txt` files. Narrow down using CLI tools. Use an `Explore` task if needed. You may delete `./dump/*` during the tests if needed.
 - Poke the black boxes directly to investigate or reveal non-ui issues.
 - Report issues as you go. Don't wait till the end, create and modify often.
@@ -48,6 +48,28 @@ For the selected Stories:
 - Document every Epic and Story you can think of or have encountered; anything the product currently supports or should support.
 
 You may imagine and do additional Stories in the same Epic that are related/prerequisite as you go (not a priority), but be sure to write and mark those as well. If you feel like you picked too many stories, feel free to drop them anytime after updating relevant files, next tester will pick them up.
+
+### playwright-cli - browser automation from terminal
+
+Must use headed mode.
+
+- browser: open --headed [url], attach [name], close, goto <url>, resize <w> <h>
+- nav: go-back, go-forward, reload
+- interact: click/dblclick/hover <target>, type/fill <target> <text>, drag <from> <to>, select <target> <val>, check/uncheck <target>, upload <file>
+- keys: press/keydown/keyup <key>
+- mouse: mousemove <x> <y>, mousedown/mouseup [btn], mousewheel <dx> <dy>
+- inspect: snapshot [el], eval <func> [el], console [level], network
+- dialog: dialog-accept [prompt], dialog-dismiss
+- capture: screenshot [target], pdf, video-start/stop, video-chapter <title>, tracing-start/stop
+- tabs: tab-list, tab-new [url], tab-close [idx], tab-select <idx>
+- state: state-load/save <file>, delete-data
+- cookies: cookie-list, cookie-get/set/delete <name>, cookie-clear
+- storage: {local,session}storage-{list,get,set,delete,clear}
+- network: route <pattern>, route-list, unroute [pattern], network-state-set <online|offline>
+- debug: run-code [code], show, pause-at <loc>, resume, step-over
+- sessions: list, close-all, kill-all
+- setup: install, install-browser [browser]
+- flags: --raw, --help [cmd], --version
 
 ### Report Format
 
