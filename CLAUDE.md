@@ -29,7 +29,7 @@ All network traffic goes through a debugging proxy (net-dump) and written to `du
 
 ### Pick
 
-- `findings/<Epic>/stories.md` : List of check boxes (- [ ] <Story>).Stories should cover all the variations or edge cases of an Epic. Completed ones are marked with a check mark. Each <Story> is a single line, in one of following formats
+- `findings/<Epic>/stories.md` : List of check boxes (- [ ] <Story>).Stories should cover all the variations or edge cases of an Epic. Completed (passing or failing) ones are marked with a check mark. Each <Story> is a single line, in one of following formats
   - User Story: Reads as a continuation of `As a <Persona> I should be able to `.
   - NFR Story: Starts with "Thunder must "
 - `findings/<Epic>/issue-<p>-<c>-<d>.md` : Issue report eg issue-p1-ux-password-in-plain-text.md. Priorities(<p>) are p1, p2, p3. Categories(<c>) are ui, ux, api, db, ect.
@@ -42,7 +42,7 @@ Pick a **single** Epic (cover breadth first yet prioritize by importance), then 
 
 - Create extensions if needed
 - Perform black box testing. Assume the previous tester left the docker compose up. Prefer UI tests over backend tests. UI tests are performed using playwright-cli.
-- **MUST** Read all relevant `dump/*.txt` files. Use an `Explore` task if needed. You may delete `dump/*` during the tests if needed. Keep an eye out for anything suspicious, not just what we are testing.
+- **MUST** Read all relevant `dump/*.txt` files in between UI actions. `Explore` task if needed. You may delete `dump/*` during the tests if needed. Keep an eye out for anything suspicious, not just what we are testing.
 - Poke the black boxes directly to investigate or reveal non-ui issues.
 - Report issues as you go. Don't wait till the end, create and modify often.
 - Add any and all Epics and Stories you can imagine or came across that the product does/should support to stories.md files.
@@ -83,8 +83,8 @@ The issue MUST NOT contain any solutions, only the steps and evidence. Don't ass
 ## Clean Up
 
 - Update the findings if you haven't already, refine as needed.
-- Organize/split/merge/move/rephrase the Epics/Stories (use an Agent to fix, Sonnet, foreground)
-- Merge/move issue-* (another Agent, after above finish).
+- Organize/split/merge/move/rephrase the Epics/Stories (use Explore to get a list to change, Sonnet, foreground)
+- Merge/move issue-* (another Explore, after above finish).
 - Move changes you did to docker files to `extensions\<d>` as `.diff` and reset the original git committed files.
 - `docker compose down -v && rm -f dump/*` and close the tabs.
 - `docker compose up -d` and verify. Leave the setup in a good state for the next tester.
