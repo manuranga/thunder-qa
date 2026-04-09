@@ -1,4 +1,4 @@
-Do acceptance testing for Thunder. Be critical.
+Do acceptance testing for Thunder. Be critical. Finding p1 api is our priority.
 
 # Thunder
 
