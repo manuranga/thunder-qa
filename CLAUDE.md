@@ -1,4 +1,4 @@
-Do acceptance testing for Thunder. Be critical. Finding p1 api is our priority.
+Do acceptance testing for Thunder. Be critical. Discovering p1 api issues is the priority. Must perform Clean Up before stopping.
 
 # Thunder
 
@@ -29,8 +29,10 @@ All network traffic goes through a debugging proxy (net-dump) and written to `du
 
 ### Pick
 
-- `user-stories/<Epic>/stories.md` : List of check boxes (- [ ] <Story>). Each <Story> is a single line that reads as a continuation of `As a <Persona> I should be able to <Story>`. Stories should cover all the variations or edge cases of an Epic. Completed ones are marked with a check mark.
-- `user-stories/<Epic>/issue-<p>-<c>-<d>.md` : Issue report eg issue-p1-ux-password-in-plain-text.md. Priorities(<p>) are p1, p2, p3. Categories(<c>) are ui, ux, api, db.
+- `findings/<Epic>/stories.md` : List of check boxes (- [ ] <Story>).Stories should cover all the variations or edge cases of an Epic. Completed ones are marked with a check mark. Each <Story> is a single line, in one of following formats
+  - User Story: Reads as a continuation of `As a <Persona> I should be able to `.
+  - NFR Story: Starts with "Thunder must "
+- `findings/<Epic>/issue-<p>-<c>-<d>.md` : Issue report eg issue-p1-ux-password-in-plain-text.md. Priorities(<p>) are p1, p2, p3. Categories(<c>) are ui, ux, api, db, ect.
 
 `cd user-stories && tail -n +1 */stories.md`
 
@@ -38,16 +40,19 @@ Pick a **single** Epic (cover breadth first yet prioritize by importance), then 
 
 ### Test
 
-For the selected Stories:
-
+- Create extensions if needed
 - Perform black box testing. Assume the previous tester left the docker compose up. Prefer UI tests over backend tests. UI tests are performed using playwright-cli.
-- Read all relevant `dump/*.txt` files. Narrow down using CLI tools. Use an `Explore` task if needed. You may delete `dump/*` during the tests if needed.
+- **MUST** Read all relevant `dump/*.txt` files. Use an `Explore` task if needed. You may delete `dump/*` during the tests if needed. Keep an eye out for anything suspicious, not just what we are testing.
 - Poke the black boxes directly to investigate or reveal non-ui issues.
 - Report issues as you go. Don't wait till the end, create and modify often.
 - Add any and all Epics and Stories you can imagine or came across that the product does/should support to stories.md files.
 - Document every Epic and Story you can think of or have encountered; anything the product currently supports or should support.
 
 You may imagine and do additional Stories in the same Epic that are related/prerequisite as you go (not a priority), but be sure to write and mark those as well. If you feel like you picked too many stories, feel free to drop them anytime after updating relevant files, next tester will pick them up.
+
+### Extensions
+
+For some tests you may need to extend the docker setup. Eg: add a mock service provider and wire it though net-dump. Modify docker files and create a reusable `extensions\<d>` dir. Must contain a `README.md` file. Be terse.
 
 ### playwright-cli - browser automation from terminal
 
@@ -73,12 +78,13 @@ Must use headed mode.
 
 ### Report Format
 
-The issue MUST NOT contain any solutions, only the steps and evidence. Don't assume solutions, because there could be multiple ways to solve, or even architectural level solutions that make the whole issue obsolete. Don’t even include the expected behavior. Keep in mind, other engineers do not have the same setup (dump, docker) as you, so report in a generic way. Even better, write from the perspective of an actual user, if possible. Assume the reader is an expert in the product. Format it such that it can be body of a GitHub issue. Be terse.
+The issue MUST NOT contain any solutions, only the steps and evidence. Don't assume solutions, because there could be multiple ways to solve, or even architectural level solutions that make the whole issue obsolete. Don’t even include the expected behavior. Keep in mind, other engineers do not have the same setup (dump, docker) as you, so report in a generic way. Even better, write from the perspective of an actual user, if possible. Assume the reader is an expert in the product. Format it such that it can be the body of a GitHub issue. Be terse.
 
 ## Clean Up
 
-- Double check relevant md files, refine as needed.
-- Organize/split/merge/rearrange the Epics/Stories. Use an Agent.
-- Improvements to the docker setup are welcome, as long as they are general and not specific to the test. Be sure to document it tersely in @additional-docker.md. Eg: add a mock service provider and wire it though net-dump.
+- Update the findings if you haven't already, refine as needed.
+- Organize/split/merge/move/rephrase the Epics/Stories (use an Agent to fix, Sonnet, foreground)
+- Merge/move issue-* (another Agent, after above finish).
+- Move changes you did to docker files to `extensions\<d>` as `.diff` and reset the original git committed files.
 - `docker compose down -v && rm -f dump/*` and close the tabs.
 - `docker compose up -d` and verify. Leave the setup in a good state for the next tester.
