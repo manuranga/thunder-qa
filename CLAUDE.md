@@ -15,7 +15,7 @@ Consent → PostgreSQL (consentdb)
 
 ## Dump
 
-All network traffic goes through a debugging proxy (net-dump) and written to `./dump/`. DB changes are also captured via CDC to `./dump/`.
+All network traffic goes through a debugging proxy (net-dump) and written to `dump`. DB changes are also captured via CDC to `dump`.
 
 - net: `{timestamp}_{from}-to-{to}_{METHOD}_{path}_{status}.txt`
 - db: `{timestamp}_{dbname}_{OP}_{table}_{key}.txt`
@@ -29,8 +29,8 @@ All network traffic goes through a debugging proxy (net-dump) and written to `./
 
 ### Pick
 
-- ./user-stories/<Epic>/stories.md : List of check boxes (- [ ] <Story>). Each <Story> is a single line that reads as a continuation of `As a <Persona> I should be able to <Story>`. Stories should cover all the variations or edge cases of an Epic. Completed ones are marked with a check mark.
-- ./user-stories/<Epic>/issue-<p>-<c>-<d>.md : Issue report eg issue-p1-ux-password-in-plain-text.md. Priorities(<p>) are p1, p2, p3. Categories(<c>) are ui, ux, api, db.
+- `user-stories/<Epic>/stories.md` : List of check boxes (- [ ] <Story>). Each <Story> is a single line that reads as a continuation of `As a <Persona> I should be able to <Story>`. Stories should cover all the variations or edge cases of an Epic. Completed ones are marked with a check mark.
+- `user-stories/<Epic>/issue-<p>-<c>-<d>.md` : Issue report eg issue-p1-ux-password-in-plain-text.md. Priorities(<p>) are p1, p2, p3. Categories(<c>) are ui, ux, api, db.
 
 `cd user-stories && tail -n +1 */stories.md`
 
@@ -41,7 +41,7 @@ Pick a **single** Epic (cover breadth first yet prioritize by importance), then 
 For the selected Stories:
 
 - Perform black box testing. Assume the previous tester left the docker compose up. Prefer UI tests over backend tests. UI tests are performed using playwright-cli.
-- Read all relevant `./dump/*.txt` files. Narrow down using CLI tools. Use an `Explore` task if needed. You may delete `./dump/*` during the tests if needed.
+- Read all relevant `dump/*.txt` files. Narrow down using CLI tools. Use an `Explore` task if needed. You may delete `dump/*` during the tests if needed.
 - Poke the black boxes directly to investigate or reveal non-ui issues.
 - Report issues as you go. Don't wait till the end, create and modify often.
 - Add any and all Epics and Stories you can imagine or came across that the product does/should support to stories.md files.
@@ -80,5 +80,5 @@ The issue MUST NOT contain any solutions, only the steps and evidence. Don't ass
 - Double check relevant md files, refine as needed.
 - Organize/split/merge/rearrange the Epics/Stories. Use an Agent.
 - Improvements to the docker setup are welcome, as long as they are general and not specific to the test. Be sure to document it tersely in @additional-docker.md. Eg: add a mock service provider and wire it though net-dump.
-- `docker compose down -v && rm -f ./dump/*` and close the tabs.
-- `docker compose up -d` and verify (no need to check the ui). Leave the setup in a good state for the next tester.
+- `docker compose down -v && rm -f dump/*` and close the tabs.
+- `docker compose up -d` and verify. Leave the setup in a good state for the next tester.
