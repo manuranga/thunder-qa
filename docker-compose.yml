@@ -60,7 +60,7 @@ services:
         EOF
         exec node net-dump.js config.json
     healthcheck:
-      test: netstat -tln | grep -q ':8091' || exit 1
+      test: netstat -tln | grep -q ':8091' && netstat -tln | grep -q ':9091' || exit 1
       interval: 2s
       timeout: 2s
       retries: 3
@@ -98,7 +98,7 @@ services:
           echo "First run — running setup..."
           THUNDER_PUBLIC_URL=https://localhost:8091 ./setup.sh --without-consent
         fi
-        exec ./thunder
+        exec ./thunderid
     ports:
       - "8090:8090"
     depends_on:

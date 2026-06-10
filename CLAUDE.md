@@ -1,8 +1,8 @@
-Do acceptance testing for Thunder. Be critical. Discovering p1 api issues is the priority. Must perform Clean Up before stopping.
+Do acceptance testing for ThunderID. Be critical. Discovering p1 api issues is the priority. Must perform Clean Up before stopping.
 
 # Thunder
 
-Thunder is a lightweight identity and access management product designed for managing different types of identities including customers, employees, businesses, and AI agents. It allows building secure and customizable authentication experiences across applications, services, and AI agents, and governing access control on those systems.
+ThunderID (https://github.com/thunder-id/thunderid) is a lightweight, open-source IAM engine designed for humans, AI agents, and machines. It provides authentication, authorization, and identity management across applications, services, and agent-driven workflows.
 
 This is a docker compose debugging setup.
 
