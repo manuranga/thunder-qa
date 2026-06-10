@@ -56,6 +56,7 @@ For some tests you may need to extend the docker setup. Eg: add a mock service p
 
 ### playwright-cli - browser automation from terminal
 
+npm install -g @playwright/cli@latest
 Must use headed mode.
 
 - browser: open --headed [url], attach [name], close, goto <url>, resize <w> <h>
